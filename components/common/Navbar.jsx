@@ -1,8 +1,9 @@
 "use client";
+
 import { Bookmark, Home, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -12,46 +13,40 @@ const Navbar = () => {
   const desktopSearchRef = useRef(null);
   const mobileSearchRef = useRef(null);
 
-  const pathname = usePathname();
+  const segment = useSelectedLayoutSegment();
   const router = useRouter();
 
+  // Scroll listener
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 0);
     window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (pathname === "/search" || window.innerWidth < 768) {
-        return;
-      }
-
+  // Keyboard shortcut Ctrl+K
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (segment === "search" || window.innerWidth < 768) return;
       if (e.ctrlKey && e.code === "KeyK") {
         e.preventDefault();
-        console.log("Ctrl+K pressed from navbar");
-
         desktopSearchRef.current?.focus();
       }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [pathname]);
+    },
+    [segment]
+  );
 
   useEffect(() => {
-    if (isMobileMenuOpen && pathname !== "/search") {
-    }
-  }, [isMobileMenuOpen, pathname]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
+  // Submit search
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (searchTerm.trim() !== "") {
-      router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
+    if (!searchTerm.trim()) return;
+
+    router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
+    if (window.innerWidth < 768) {
       setSearchTerm("");
       setIsMobileMenuOpen(false);
     }
@@ -65,7 +60,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`sticky top-0 left-0 right-0 z-50 border-b border-gray-200 transition-all duration-300 ${
+      className={`sticky top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${
         isScrolled
           ? "backdrop-blur-md bg-white/90 border-gray-300"
           : "bg-white/85 backdrop-blur-sm border-gray-200"
@@ -73,19 +68,19 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex-shrink-0">
-            <Link href="/" className="group flex items-center space-x-2">
-              <div className="relative">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-black via-indigo-400 to-black bg-clip-text text-transparent group-hover:from-indigo-400 group-hover:via-purple-500 group-hover:to-indigo-400 transition-all duration-300">
-                  Animao
-                </h1>
-                <span className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-400 to-transparent scale-x-0 group-hover:scale-x-100 transition-all duration-300"></span>
-              </div>
-            </Link>
-          </div>
+          {/* Logo */}
+          <Link href="/" className="group flex items-center space-x-2">
+            <div className="relative">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-black via-indigo-400 to-black bg-clip-text text-transparent group-hover:from-indigo-400 group-hover:via-purple-500 group-hover:to-indigo-400 transition-all duration-300">
+                Animao
+              </h1>
+              <span className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-400 to-transparent scale-x-0 group-hover:scale-x-100 transition-all duration-300"></span>
+            </div>
+          </Link>
 
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-4">
-            {pathname !== "/search" && (
+            {segment !== "search" && (
               <form onSubmit={handleSubmit}>
                 <input
                   ref={desktopSearchRef}
@@ -98,28 +93,32 @@ const Navbar = () => {
               </form>
             )}
             <ul className="flex items-center space-x-1">
-              {links.map(({ href, label, icon: Icon }, index) => (
-                <li key={index}>
-                  <Link
-                    href={href}
-                    className={`group flex items-center gap-2 rounded-full px-4 py-2 text-gray-700 hover:text-indigo-400 font-medium transition-all duration-300 ${
-                      pathname === href ? "text-indigo-500 bg-indigo-50" : ""
-                    }`}
-                    style={{
-                      animationDelay: `${index * 100}ms`,
-                    }}
-                  >
-                    <Icon className="size-4 transition-all duration-300 group-hover:scale-110" />
-                    <span className="relative">
-                      {label}
-                      <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-indigo-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
+              {links.map(({ href, label, icon: Icon }) => {
+                const isActive =
+                  (href === "/" && segment === null) ||
+                  href === `/${segment ?? ""}`;
+
+                return (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className={`group flex items-center gap-2 rounded-full px-4 py-2 text-gray-700 hover:text-indigo-400 font-medium transition-all duration-300 ${
+                        isActive ? "text-indigo-500 bg-indigo-50" : ""
+                      }`}
+                    >
+                      <Icon className="size-4 transition-all duration-300 group-hover:scale-110" />
+                      <span className="relative">
+                        {label}
+                        <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-indigo-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
+          {/* Mobile toggle */}
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -146,6 +145,7 @@ const Navbar = () => {
           </div>
         </div>
 
+        {/* Mobile menu */}
         <div
           className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
             isMobileMenuOpen
@@ -154,7 +154,7 @@ const Navbar = () => {
           }`}
         >
           <div className="pt-2 space-y-1">
-            {pathname !== "/search" && (
+            {segment !== "search" && (
               <form onSubmit={handleSubmit} className="px-4">
                 <input
                   ref={mobileSearchRef}
@@ -166,30 +166,36 @@ const Navbar = () => {
                 />
               </form>
             )}
-            {links.map(({ href, label, icon: Icon }, index) => (
-              <Link
-                key={label}
-                href={href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="group flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:text-indigo-400 font-medium transition-all duration-300 hover:bg-indigo-50 hover:translate-x-1"
-                style={{
-                  animationDelay: `${index * 100}ms`,
-                }}
-              >
-                <div className="p-2 rounded-lg group-hover:bg-indigo-100 transition-colors duration-300">
-                  <Icon className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
-                </div>
-                <span className="flex-1">{label}</span>
-                <div className="w-2 h-2 rounded-full bg-indigo-400 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
-              </Link>
-            ))}
+            {links.map(({ href, label, icon: Icon }) => {
+              const isActive =
+                (href === "/" && segment === null) ||
+                href === `/${segment ?? ""}`;
+
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`group flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 hover:bg-indigo-50 hover:translate-x-1 ${
+                    isActive ? "text-indigo-500" : "text-gray-700 hover:text-indigo-400"
+                  }`}
+                >
+                  <div className="p-2 rounded-lg group-hover:bg-indigo-100 transition-colors duration-300">
+                    <Icon className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
+                  </div>
+                  <span className="flex-1">{label}</span>
+                  <div className="w-2 h-2 rounded-full bg-indigo-400 scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
 
+      {/* Mobile backdrop */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 backdrop-blur-sm md:hidden z-[-1]"
+          className="fixed inset-0 bg-black/10 backdrop-blur-sm md:hidden z-40"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
