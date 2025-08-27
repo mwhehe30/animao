@@ -1,0 +1,19 @@
+@import "tailwindcss";
+@plugin 'tailwind-scrollbar';
+
+:root {
+  --background: oklch(1 0 0);
+}
+
+@theme {
+  --font-inter: var(--font-inter);
+  --font-poppins: var(--font-poppins);
+
+  --color-background: var(--background);
+}
+
+@layer base {
+  body {
+    @apply font-inter;
+  }
+}
