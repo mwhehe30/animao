@@ -40,7 +40,7 @@ export default function CharacterSection({ characters }) {
             </h4>
             {charData.voice_actors?.[0] && (
               <p className="text-xs text-gray-500 mt-1">
-                {charData.voice_actors[0].person.name}
+                <span className="text-blue-500">Voice Actor: </span>{charData.voice_actors[0].person.name}
               </p>
             )}
           </div>
