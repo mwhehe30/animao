@@ -23,6 +23,16 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Lock body scroll when mobile menu open
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isMobileMenuOpen]);
+
   // Keyboard shortcut Ctrl+K
   const handleKeyDown = useCallback(
     (e) => {
@@ -124,6 +134,8 @@ const Navbar = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="relative p-2 rounded-lg text-gray-700 hover:text-indigo-400 hover:bg-indigo-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2"
               aria-label="Toggle mobile menu"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu-panel"
             >
               <div className="relative w-6 h-6">
                 <Menu
@@ -145,9 +157,10 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile menu (raised above overlay) */}
         <div
-          className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+          id="mobile-menu-panel"
+          className={`relative z-50 md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
             isMobileMenuOpen
               ? "max-h-64 opacity-100 pb-4"
               : "max-h-0 opacity-0 pb-0"
@@ -192,11 +205,12 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile backdrop */}
+      {/* Backdrop (below the menu, clickable) */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/10 backdrop-blur-sm md:hidden z-40"
           onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
         />
       )}
     </nav>
