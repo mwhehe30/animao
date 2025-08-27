@@ -1,7 +1,7 @@
 "use client";
 import { Bookmark, Home, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useSelectedLayoutSegment, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const Navbar = () => {
@@ -12,7 +12,7 @@ const Navbar = () => {
   const desktopSearchRef = useRef(null);
   const mobileSearchRef = useRef(null);
 
-  const pathname = usePathname();
+  const segment = useSelectedLayoutSegment();
   const router = useRouter();
 
   useEffect(() => {
@@ -27,7 +27,8 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (pathname === "/search" || window.innerWidth < 768) {
+      // Check if we're on the search page using segment
+      if (segment === "search" || window.innerWidth < 768) {
         return;
       }
 
@@ -41,12 +42,13 @@ const Navbar = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [pathname]);
+  }, [segment]);
 
   useEffect(() => {
-    if (isMobileMenuOpen && pathname !== "/search") {
+    if (isMobileMenuOpen && segment !== "search") {
+      // Mobile menu logic
     }
-  }, [isMobileMenuOpen, pathname]);
+  }, [isMobileMenuOpen, segment]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -58,9 +60,9 @@ const Navbar = () => {
   };
 
   const links = [
-    { href: "/", label: "Home", icon: Home },
-    { href: "/search", label: "Search", icon: Search },
-    { href: "/bookmark", label: "Bookmark", icon: Bookmark },
+    { href: "/", label: "Home", icon: Home, segment: null },
+    { href: "/search", label: "Search", icon: Search, segment: "search" },
+    { href: "/bookmark", label: "Bookmark", icon: Bookmark, segment: "bookmark" },
   ];
 
   return (
@@ -85,7 +87,7 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            {pathname !== "/search" && (
+            {segment !== "search" && (
               <form onSubmit={handleSubmit}>
                 <input
                   ref={desktopSearchRef}
@@ -98,12 +100,12 @@ const Navbar = () => {
               </form>
             )}
             <ul className="flex items-center space-x-1">
-              {links.map(({ href, label, icon: Icon }, index) => (
+              {links.map(({ href, label, icon: Icon, segment: linkSegment }, index) => (
                 <li key={index}>
                   <Link
                     href={href}
                     className={`group flex items-center gap-2 rounded-full px-4 py-2 text-gray-700 hover:text-indigo-400 font-medium transition-all duration-300 ${
-                      pathname === href ? "text-indigo-500 bg-indigo-50" : ""
+                      segment === linkSegment ? "text-indigo-500 bg-indigo-50" : ""
                     }`}
                     style={{
                       animationDelay: `${index * 100}ms`,
@@ -154,7 +156,7 @@ const Navbar = () => {
           }`}
         >
           <div className="pt-2 space-y-1">
-            {pathname !== "/search" && (
+            {segment !== "search" && (
               <form onSubmit={handleSubmit} className="px-4">
                 <input
                   ref={mobileSearchRef}
@@ -166,12 +168,14 @@ const Navbar = () => {
                 />
               </form>
             )}
-            {links.map(({ href, label, icon: Icon }, index) => (
+            {links.map(({ href, label, icon: Icon, segment: linkSegment }, index) => (
               <Link
                 key={label}
                 href={href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="group flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:text-indigo-400 font-medium transition-all duration-300 hover:bg-indigo-50 hover:translate-x-1"
+                className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:text-indigo-400 font-medium transition-all duration-300 hover:bg-indigo-50 hover:translate-x-1 ${
+                  segment === linkSegment ? "text-indigo-500 bg-indigo-50" : ""
+                }`}
                 style={{
                   animationDelay: `${index * 100}ms`,
                 }}
