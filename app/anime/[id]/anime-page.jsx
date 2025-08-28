@@ -79,10 +79,10 @@ export default function AnimeDetailPage({ anime, characters }) {
                     <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
                     {anime.score || "N/A"}
                   </div>
-                  <span className="bg-white/20 backdrop-blur-sm text-blue-500 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border border-blue-500">
+                  <span className="bg-white/20 backdrop-blur-sm text-indigo-600 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border border-indigo-600">
                     {anime.year || "Unknown"}
                   </span>
-                  <span className="bg-white/20 backdrop-blur-sm text-black px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border border-black">
+                  <span className="bg-white/20 backdrop-blur-sm text-purple-600 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border border-purple-600">
                     {anime.episodes ? `${anime.episodes} eps` : "Unknown"}
                   </span>
                   <span
