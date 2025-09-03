@@ -2,7 +2,7 @@
 @plugin 'tailwind-scrollbar';
 
 :root {
-  --background: oklch(1 0 0);
+  --background: #f3f6f4;
 }
 
 @theme {
