@@ -2,7 +2,7 @@
 @plugin 'tailwind-scrollbar';
 
 :root {
-  --background: #f3f6f4;
+  --background: oklch(1 0 0);
 }
 
 @theme {
@@ -10,7 +10,6 @@
   --font-poppins: var(--font-poppins);
 
   --color-background: var(--background);
-  --color-white: #f3f6f4;
 }
 
 @layer base {
